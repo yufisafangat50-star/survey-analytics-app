@@ -86,8 +86,9 @@ def plot_boxplot(df, columns):
 
 
 def plot_validity_barchart(validity_df):
-    colors = [COLORS["valid"] if "Valid ✅" in str(s) else COLORS["invalid"]
-              for s in validity_df["Status"]]
+    # Warna berdasarkan nilai r langsung, tidak bergantung pada string label
+    colors = [COLORS["valid"] if r > 0.30 else COLORS["invalid"]
+              for r in validity_df["Korelasi Item-Total"]]
     # Potong label panjang
     labels = [str(x)[:20] + "…" if len(str(x)) > 20 else str(x)
               for x in validity_df["Item"]]
