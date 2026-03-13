@@ -18,19 +18,19 @@ def combined_label(r, p, threshold=0.30, alpha=0.05):
     valid = r > threshold
     sig   = p < alpha
     if valid and sig:
-        return ("✅ Valid & Signifikan",
+        return ("Valid & Signifikan",
                 "Pertanyaan ini mengukur hal yang sama dengan kuesioner secara "
                 "keseluruhan, dan hasilnya dapat dipercaya.")
     elif valid and not sig:
-        return ("⚠️ Valid tapi Belum Meyakinkan",
+        return ("Valid tapi Belum Meyakinkan",
                 "Pertanyaan cukup relevan, namun butuh lebih banyak responden "
                 "untuk memastikan hasilnya.")
     elif not valid and sig:
-        return ("ℹ️ Kurang Relevan",
+        return ("Kurang Relevan",
                 "Pertanyaan kurang mencerminkan topik kuesioner, meskipun "
                 "polanya konsisten di semua responden.")
     else:
-        return ("❌ Tidak Valid",
+        return ("Tidak Valid",
                 "Pertanyaan tidak mencerminkan topik kuesioner dan hasilnya "
                 "tidak dapat diandalkan.")
 
@@ -102,7 +102,7 @@ validity_df = st.session_state["validity_df"].copy()
 
 # Recalculate jika threshold berubah
 validity_df["Status"] = validity_df["Korelasi Item-Total"].apply(
-    lambda r: "Valid ✅" if r > threshold else "Tidak Valid ❌"
+    lambda r: "Valid" if r > threshold else "Tidak Valid"
 )
 interp_cols = validity_df.apply(
     lambda row: pd.Series(combined_label(
@@ -123,10 +123,10 @@ n_inv_sig    = ((validity_df["Korelasi Item-Total"] <= threshold) & (validity_df
 n_inv_nsig   = ((validity_df["Korelasi Item-Total"] <= threshold) & (validity_df["p-value"] >= 0.05)).sum()
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("✅ Valid & Signifikan",          n_valid_sig)
-c2.metric("⚠️ Valid tapi Belum Meyakinkan", n_valid_nsig)
-c3.metric("ℹ️ Kurang Relevan",              n_inv_sig)
-c4.metric("❌ Tidak Valid",                  n_inv_nsig)
+c1.metric("Valid & Signifikan",          n_valid_sig)
+c2.metric("Valid tapi Belum Meyakinkan", n_valid_nsig)
+c3.metric("Kurang Relevan",              n_inv_sig)
+c4.metric("Tidak Valid",                  n_inv_nsig)
 
 summary_msg = validity_interpretation(valid_count, total)
 if valid_count == total:       st.success(summary_msg)
@@ -165,9 +165,9 @@ display_df = display_df[cols_show]
 
 def color_row(row):
     interp = row["Interpretasi"]
-    if "Valid & Signifikan"   in interp: bg = "background-color:#d4edda;"
-    elif "Belum Meyakinkan"   in interp: bg = "background-color:#fff3cd;"
-    elif "Kurang Relevan"     in interp: bg = "background-color:#d1ecf1;"
+    if interp == "Valid & Signifikan": bg = "background-color:#d4edda;"
+    elif interp == "Valid tapi Belum Meyakinkan": bg = "background-color:#fff3cd;"
+    elif interp == "Kurang Relevan": bg = "background-color:#d1ecf1;"
     else:                                bg = "background-color:#f8d7da;"
     return [bg] * len(row)
 
@@ -178,10 +178,12 @@ st.dataframe(
     height=min(700, 65 + 35 * len(display_df)),
 )
 st.markdown(
-    "<small>🟩 Hijau = Valid & Signifikan &nbsp;|&nbsp; "
-    "🟨 Kuning = Valid tapi Belum Meyakinkan &nbsp;|&nbsp; "
-    "🟦 Biru = Kurang Relevan &nbsp;|&nbsp; "
-    "🟥 Merah = Tidak Valid</small>",
+    "<small>"
+    "Hijau = Valid &amp; Signifikan &nbsp;|&nbsp; "
+    "Kuning = Valid tapi Belum Meyakinkan &nbsp;|&nbsp; "
+    "Biru = Kurang Relevan &nbsp;|&nbsp; "
+    "Merah = Tidak Valid"
+    "</small>",
     unsafe_allow_html=True,
 )
 
@@ -189,7 +191,7 @@ st.markdown(
 if invalid_count > 0 or n_inv_sig > 0:
     st.markdown("### 💡 Rekomendasi")
     if invalid_count > 0:
-        gugur      = validity_df[validity_df["Status"] == "Tidak Valid ❌"]["Item"].tolist()
+        gugur      = validity_df[validity_df["Status"] == "Tidak Valid"]["Item"].tolist()
         gugur_kode = [short_map.get(x, x) for x in gugur]
         st.warning(
             f"**{invalid_count} pertanyaan perlu ditinjau ulang:** {', '.join(gugur_kode)}\n\n"

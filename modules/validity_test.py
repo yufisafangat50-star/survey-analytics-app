@@ -16,25 +16,25 @@ def get_combined_interpretation(r, p_value, threshold=0.30, alpha=0.05):
 
     if valid and sig:
         return (
-            "✅ Valid & Signifikan",
+            "Valid & Signifikan",
             "Pertanyaan ini mengukur hal yang sama dengan kuesioner secara "
             "keseluruhan, dan hasilnya dapat dipercaya."
         )
     elif valid and not sig:
         return (
-            "⚠️ Valid tapi Belum Meyakinkan",
+            "Valid tapi Belum Meyakinkan",
             "Pertanyaan cukup relevan, namun butuh lebih banyak responden "
             "untuk memastikan hasilnya."
         )
     elif not valid and sig:
         return (
-            "ℹ️ Kurang Relevan",
+            "Kurang Relevan",
             "Pertanyaan kurang mencerminkan topik kuesioner, meskipun "
             "polanya konsisten di semua responden."
         )
     else:
         return (
-            "❌ Tidak Valid",
+            "Tidak Valid",
             "Pertanyaan tidak mencerminkan topik kuesioner dan hasilnya "
             "tidak dapat diandalkan."
         )
@@ -63,7 +63,7 @@ def corrected_item_total_correlation(df, columns, threshold=0.30):
             "Interpretasi":        label,
             "Penjelasan":          penjelasan,
             # kolom lama dipertahankan agar tidak merusak kode lain
-            "Status":              "Valid ✅" if r > threshold else "Tidak Valid ❌",
+            "Status":              "Valid" if r > threshold else "Tidak Valid",
         })
 
     return pd.DataFrame(results)
@@ -71,6 +71,6 @@ def corrected_item_total_correlation(df, columns, threshold=0.30):
 
 def get_validity_summary(validity_df):
     """Kembalikan jumlah item valid dan tidak valid."""
-    valid   = (validity_df["Status"] == "Valid ✅").sum()
-    invalid = (validity_df["Status"] == "Tidak Valid ❌").sum()
+    valid   = (validity_df["Status"] == "Valid").sum()
+    invalid = (validity_df["Status"] == "Tidak Valid").sum()
     return valid, invalid

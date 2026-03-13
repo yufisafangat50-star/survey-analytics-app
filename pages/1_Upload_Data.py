@@ -121,13 +121,7 @@ if "df" in st.session_state and st.session_state["df"] is not None:
     # ── Info kolom ─────────────────────────────────────────────────────────────
     st.markdown("### 🔢 Informasi Kolom")
     def fmt_dtype(dtype):
-        s = str(dtype)
-        if "datetime" in s: return "datetime ✅"
-        if "int"      in s: return "integer (angka bulat)"
-        if "float"    in s: return "float (angka desimal)"
-        if "object"   in s: return "teks"
-        if "bool"     in s: return "boolean"
-        return s
+        return str(dtype)
 
     def fmt_minmax(col):
         if pd.api.types.is_numeric_dtype(df[col]):
