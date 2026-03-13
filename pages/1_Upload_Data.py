@@ -79,9 +79,7 @@ if "df" in st.session_state and st.session_state["df"] is not None:
 
     # ── Preview data ───────────────────────────────────────────────────────────
     st.markdown("### 🔍 Pratinjau Dataset (10 Baris Pertama)")
-    st.dataframe(df.head(10,
-        hide_index=True,
-    ), use_container_width=True, height=260)
+    st.dataframe(df.head(10), use_container_width=True, height=260, hide_index=True)
 
     # ── Missing values ─────────────────────────────────────────────────────────
     st.markdown("### ❓ Ringkasan Nilai Kosong")

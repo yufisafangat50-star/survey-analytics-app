@@ -85,10 +85,10 @@ if include_efa:
     st.markdown("#### 🧩 Analisis Faktor")
     if "efa_loadings" in st.session_state:
         st.dataframe(
-            st.session_state["efa_loadings"].round(3,
-        hide_index=True,
-    ),
-            use_container_width=True, height=200
+            st.session_state["efa_loadings"].round(3),
+            use_container_width=True,
+            height=200,
+            hide_index=True,
         )
     else:
         st.info("ℹ️ Jalankan Analisis Faktor terlebih dahulu untuk menyertakannya.")

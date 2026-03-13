@@ -107,10 +107,9 @@ if "cronbach_alpha" in st.session_state:
             return ["background-color: #fff3cd"] * len(row)
         return [""] * len(row)
     st.dataframe(
-        alpha_del_df.style.apply(highlight_increase, axis=1,
+        alpha_del_df.style.apply(highlight_increase, axis=1),
+        use_container_width=True,
         hide_index=True,
-    ),
-        use_container_width=True, hide_index=True
     )
 
     if alpha is not None:

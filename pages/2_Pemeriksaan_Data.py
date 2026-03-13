@@ -72,9 +72,7 @@ import pandas as pd
 desc = df[likert_cols].describe().T.round(3)
 desc.index.name = "Item"
 desc.columns    = ["N Valid", "Rata-rata", "Std. Dev", "Min", "Q1", "Median", "Q3", "Max"]
-st.dataframe(desc, use_container_width=True,
-        hide_index=True,
-    )
+st.dataframe(desc, use_container_width=True, hide_index=True)
 
 # ── 5. Pertanyaan Negatif ──────────────────────────────────────────────────────
 st.markdown("---")

@@ -256,11 +256,10 @@ def highlight_loading(val):
     return ""
 
 st.dataframe(
-    display_df.round(3,
-        hide_index=True,
-    ).style.applymap(highlight_loading, subset=numeric_cols),
+    display_df.round(3).style.applymap(highlight_loading, subset=numeric_cols),
     use_container_width=True,
     height=min(600, 65 + 35 * len(display_df)),
+    hide_index=True,
 )
 st.caption("🟩 Hijau tua ≥ 0.60 (sangat kuat).  🟩 Hijau muda ≥ 0.40 (signifikan).")
 

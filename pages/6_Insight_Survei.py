@@ -107,9 +107,7 @@ def color_interp(val):
     return "background-color:#f8d7da;color:#721c24;"
 
 st.dataframe(
-    interp_df.style.applymap(color_interp, subset=["Interpretasi"],
-        hide_index=True,
-    ),
+    interp_df.style.applymap(color_interp, subset=["Interpretasi"]),
     use_container_width=True,
     hide_index=True,
 )
