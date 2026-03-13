@@ -1,119 +1,111 @@
-# 📊 Platform Analisis Survei
+# 📋 Platform Analisis Survei Berbasis Web
+### *Interactive Survey Analytics Platform built with Python & Streamlit*
 
-Aplikasi web analisis kuesioner survei yang dibangun dengan Streamlit.
-Seluruh antarmuka menggunakan **Bahasa Indonesia**.
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://survey-analytics.streamlit.app/)
+![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.32+-red?logo=streamlit)
+![License](https://img.shields.io/badge/License-MIT-green)
 
----
-
-## 🚀 Cara Menjalankan
-
-### 1. Persyaratan Sistem
-- Python 3.9 atau lebih baru
-- pip (Python package manager)
-
-### 2. Instalasi
-
-```bash
-# Clone atau ekstrak project
-cd survey-analytics-app
-
-# Install dependensi
-pip install -r requirements.txt
-```
-
-**Catatan untuk sklearn ≥ 1.8:** Jika menggunakan scikit-learn versi 1.8+,
-jalankan perintah berikut untuk memperbaiki kompatibilitas `factor_analyzer`:
-
-```bash
-python -c "
-import factor_analyzer.factor_analyzer as f
-import inspect, re
-src = inspect.getfile(f)
-txt = open(src).read()
-txt = txt.replace('force_all_finite=', 'ensure_all_finite=')
-open(src, 'w').write(txt)
-print('Patched!')
-"
-```
-
-### 3. Jalankan Aplikasi
-
-```bash
-streamlit run app.py
-```
-
-Buka browser dan akses: **http://localhost:8501**
+**🔗 Live Demo:** [https://survey-analytics.streamlit.app](https://survey-analytics.streamlit.app/)
 
 ---
 
-## 📁 Struktur Project
+## 🧩 Tentang Proyek
 
-```
-survey-analytics-app/
-│
-├── app.py                        # Halaman Beranda
-├── requirements.txt
-├── README.md
-│
-├── pages/
-│   ├── 1_Upload_Data.py          # Upload & preview data
-│   ├── 2_Pemeriksaan_Data.py     # Pemeriksaan kualitas data
-│   ├── 3_Uji_Validitas.py        # Corrected Item-Total Correlation
-│   ├── 4_Uji_Reliabilitas.py     # Cronbach Alpha
-│   ├── 5_Analisis_Faktor.py      # EFA: KMO, Bartlett, Scree, Varimax
-│   ├── 6_Insight_Survei.py       # Dashboard visual
-│   └── 7_Laporan.py              # Export laporan Excel
-│
-└── modules/
-    ├── data_loader.py             # Load CSV/XLSX
-    ├── likert_detection.py        # Deteksi item Likert otomatis
-    ├── reverse_items.py           # Reverse scoring
-    ├── validity_test.py           # Uji validitas
-    ├── reliability_test.py        # Uji reliabilitas
-    ├── efa_analysis.py            # Analisis Faktor
-    ├── interpretation.py          # Interpretasi bahasa Indonesia
-    └── visualizations.py          # Semua chart Plotly
-```
+Platform analisis survei berbasis web yang dirancang untuk membantu peneliti, mahasiswa, dan praktisi dalam menganalisis data kuesioner Likert secara **otomatis, interaktif, dan tanpa perlu coding**.
+
+Dibangun sebagai bagian dari pengembangan kompetensi di bidang **Statistika Terapan** dan **Data Science**, platform ini mengintegrasikan berbagai metode statistik klasik ke dalam antarmuka yang ramah pengguna.
 
 ---
 
-## ✨ Fitur Lengkap
+## ✨ Fitur Utama
 
 | Fitur | Deskripsi |
 |-------|-----------|
-| Upload Data | CSV & XLSX |
-| Deteksi Likert | Otomatis mendeteksi skala 1–4, 1–5, 1–7 |
-| Reverse Item | Transformasi skor pertanyaan negatif |
-| Uji Validitas | Corrected Item-Total Correlation (r > 0.30) |
-| Uji Reliabilitas | Cronbach Alpha + Alpha-if-Item-Deleted |
-| Analisis Faktor | KMO, Bartlett, Scree Plot, Varimax |
-| Dashboard | Radar chart, heatmap, distribusi Likert |
-| Interpretasi | Otomatis dalam Bahasa Indonesia |
-| Laporan | Export Excel multi-sheet |
+| 📂 **Upload Data** | Mendukung CSV & XLSX, auto-deteksi skala Likert (1–4, 1–5, 1–7) |
+| 🔍 **Pemeriksaan Data** | Visualisasi missing value, distribusi jawaban, boxplot |
+| ✅ **Uji Validitas** | Corrected Item-Total Correlation dengan interpretasi gabungan r & p-value |
+| 🔁 **Uji Reliabilitas** | Cronbach Alpha + Alpha-if-Item-Deleted |
+| 🧩 **Analisis Faktor** | EFA dengan KMO, Bartlett, Scree Plot, Varimax rotation |
+| 📈 **Dashboard Insight** | Rata-rata skor, stacked bar, radar chart, heatmap korelasi |
+| 📄 **Laporan Otomatis** | Export hasil ke Excel multi-sheet |
 
 ---
 
-## 📊 Format Data yang Didukung
+## 🛠️ Tech Stack
 
-File harus berformat tabel dengan:
-- **Baris pertama:** nama kolom (nama pertanyaan)
-- **Baris selanjutnya:** jawaban per responden (angka)
-
-Contoh (skala 1–4):
-
-| Q1 | Q2 | Q3 | Q4 |
-|----|----|----|-----|
-| 3  | 4  | 2  | 3  |
-| 4  | 3  | 3  | 4  |
-| 2  | 2  | 1  | 3  |
+```
+Python 3.10+
+├── streamlit        → Web framework & UI
+├── pandas / numpy   → Data processing
+├── scipy            → Statistical tests (KMO, Bartlett)
+├── scikit-learn     → Factor Analysis (EFA)
+├── plotly           → Interactive visualizations
+└── xlsxwriter       → Excel report generation
+```
 
 ---
 
-## 🛠️ Teknologi
+## 🚀 Cara Menjalankan Secara Lokal
 
-- **Streamlit** — Framework web app
-- **Pandas / NumPy** — Manipulasi data
-- **SciPy** — Uji statistik
-- **Plotly** — Visualisasi interaktif
-- **Factor Analyzer** — Analisis Faktor Eksploratori
-- **XlsxWriter** — Export Excel
+```bash
+# 1. Clone repository
+git clone https://github.com/yufisafangat50-star/survey-analytics-app.git
+cd survey-analytics-app
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Jalankan aplikasi
+streamlit run app.py
+```
+
+Aplikasi akan terbuka di `http://localhost:8501`
+
+---
+
+## 📁 Struktur Proyek
+
+```
+survey-analytics-app/
+├── app.py                    # Halaman beranda
+├── requirements.txt
+├── pages/
+│   ├── 1_Upload_Data.py
+│   ├── 2_Pemeriksaan_Data.py
+│   ├── 3_Uji_Validitas.py
+│   ├── 4_Uji_Reliabilitas.py
+│   ├── 5_Analisis_Faktor.py
+│   ├── 6_Insight_Survei.py
+│   └── 7_Laporan.py
+└── modules/
+    ├── data_loader.py
+    ├── validity_test.py
+    ├── reliability_test.py
+    ├── efa_analysis.py
+    ├── visualizations.py
+    └── interpretation.py
+```
+
+---
+
+## 📊 Metodologi Statistik
+
+- **Validitas:** Corrected Item-Total Correlation — item valid jika r > 0.30
+- **Reliabilitas:** Cronbach's Alpha — reliabel jika α ≥ 0.70
+- **EFA:** Kaiser-Meyer-Olkin (KMO), Bartlett's Test of Sphericity, Varimax Rotation
+- **Deteksi Likert:** Otomatis mendeteksi skala 1–4, 1–5, dan 1–7
+
+---
+
+## 👤 Author
+
+**Yufi Safangat**
+Mahasiswa Statistika | Data Enthusiast
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](https://www.linkedin.com/in/yufi-safangat-66b1a9312/)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-black?logo=github)](https://github.com/yufisafangat50-star)
+
+---
+
+*Built with ❤️ using Python & Streamlit*
