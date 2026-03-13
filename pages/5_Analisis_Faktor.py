@@ -256,7 +256,9 @@ def highlight_loading(val):
     return ""
 
 st.dataframe(
-    display_df.round(3).style.applymap(highlight_loading, subset=numeric_cols),
+    display_df.round(3,
+        hide_index=True,
+    ).style.applymap(highlight_loading, subset=numeric_cols),
     use_container_width=True,
     height=min(600, 65 + 35 * len(display_df)),
 )
@@ -294,7 +296,9 @@ vd.index = [
 vd["Proporsi Varians"]  = (vd["Proporsi Varians"]  * 100).round(2).astype(str) + "%"
 vd["Kumulatif Varians"] = (vd["Kumulatif Varians"] * 100).round(2).astype(str) + "%"
 vd["SS Loadings"]       = vd["SS Loadings"].round(3)
-st.dataframe(vd, use_container_width=True)
+st.dataframe(vd, use_container_width=True,
+        hide_index=True,
+    )
 
 # ── Heatmap ────────────────────────────────────────────────────────────────────
 st.markdown("### 🌡️ Heatmap Factor Loading")

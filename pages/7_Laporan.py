@@ -85,7 +85,9 @@ if include_efa:
     st.markdown("#### 🧩 Analisis Faktor")
     if "efa_loadings" in st.session_state:
         st.dataframe(
-            st.session_state["efa_loadings"].round(3),
+            st.session_state["efa_loadings"].round(3,
+        hide_index=True,
+    ),
             use_container_width=True, height=200
         )
     else:
