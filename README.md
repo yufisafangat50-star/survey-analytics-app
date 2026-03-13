@@ -115,5 +115,5 @@ Contoh (skala 1–4):
 - **Pandas / NumPy** — Manipulasi data
 - **SciPy** — Uji statistik
 - **Plotly** — Visualisasi interaktif
-- **Factor Analyzer** — Analisis Faktor Eksploratori
+- **Scikit-learn** — Analisis Faktor Eksploratori
 - **XlsxWriter** — Export Excel
