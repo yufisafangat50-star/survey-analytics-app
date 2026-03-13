@@ -48,10 +48,6 @@ with st.expander("📚 Apa itu Analisis Faktor? Baca di sini dulu!"):
     berdasarkan pertanyaan apa saja yang masuk ke dalamnya.
     """)
 
-if not FACTOR_ANALYZER_AVAILABLE:
-    st.error("❌ Library `factor_analyzer` tidak tersedia. Jalankan: `py -m pip install factor_analyzer`")
-    st.stop()
-
 if "df" not in st.session_state or st.session_state["df"] is None:
     st.warning("⚠️ Belum ada data. Silakan upload di halaman **Upload Data**.")
     st.stop()
