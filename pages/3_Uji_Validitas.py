@@ -6,9 +6,12 @@ import pandas as pd
 import sys, os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from modules.validity_test import corrected_item_total_correlation, get_validity_summary
+from modules.validity_test import (
+    corrected_item_total_correlation, get_validity_summary,
+    get_combined_interpretation
+)
 from modules.reverse_items import apply_reverse_items
-from modules.visualizations import plot_validity_barchart
+from modules.visualizations import plot_validity_barchart, make_short_labels
 from modules.interpretation import validity_interpretation
 
 st.set_page_config(page_title="Uji Validitas", page_icon="✅", layout="wide")
@@ -16,19 +19,36 @@ st.set_page_config(page_title="Uji Validitas", page_icon="✅", layout="wide")
 st.title("✅ Uji Validitas Kuesioner")
 st.markdown("Uji apakah setiap pertanyaan benar-benar mengukur hal yang ingin diukur.")
 
-with st.expander("📚 Apa itu Uji Validitas?"):
+with st.expander("📚 Apa itu Uji Validitas? Baca di sini dulu!"):
     st.markdown("""
-    **Metode:** *Corrected Item-Total Correlation* — setiap pertanyaan dibandingkan dengan
-    total skor semua pertanyaan lainnya.
+    **Uji Validitas** mengukur apakah setiap pertanyaan dalam kuesioner benar-benar
+    mencerminkan topik yang ingin diukur.
 
-    | Nilai r | Status |
-    |---------|--------|
-    | r > 0.30 | ✅ Valid |
-    | r ≤ 0.30 | ❌ Tidak Valid |
+    **Metode yang digunakan:** *Corrected Item-Total Correlation (CITC)*
+    — setiap pertanyaan dibandingkan korelasinya dengan total skor semua pertanyaan **lainnya**.
 
-    Pertanyaan tidak valid sebaiknya **diperbaiki atau dihapus** dari kuesioner.
+    ---
+    ### 📊 Cara Membaca Hasil
+
+    Dua angka penting yang dihasilkan:
+
+    | Angka | Artinya |
+    |-------|---------|
+    | **r (Korelasi)** | Seberapa **kuat** pertanyaan ini berkaitan dengan keseluruhan kuesioner. Nilai minimal yang diterima: **r > 0.30** |
+    | **p-value** | Seberapa **yakin** kita bahwa hubungan itu bukan kebetulan. Umumnya p < 0.05 dianggap meyakinkan |
+
+    ---
+    ### 🏷️ Empat Kategori Hasil
+
+    | Hasil | Artinya |
+    |-------|---------|
+    | ✅ **Valid & Signifikan** | Pertanyaan ini mengukur hal yang sama dengan kuesioner secara keseluruhan, dan hasilnya dapat dipercaya |
+    | ⚠️ **Valid tapi Belum Meyakinkan** | Pertanyaan cukup relevan, namun butuh lebih banyak responden untuk memastikan hasilnya |
+    | ℹ️ **Kurang Relevan** | Pertanyaan kurang mencerminkan topik kuesioner, meskipun polanya konsisten di semua responden |
+    | ❌ **Tidak Valid** | Pertanyaan tidak mencerminkan topik kuesioner dan hasilnya tidak dapat diandalkan |
     """)
 
+# ── Check session ──────────────────────────────────────────────────────────────
 if "df" not in st.session_state or st.session_state["df"] is None:
     st.warning("⚠️ Belum ada data. Silakan upload di halaman **Upload Data**.")
     st.stop()
@@ -49,57 +69,145 @@ if reverse_cols:
 
 with st.expander("⚙️ Pengaturan"):
     threshold = st.slider("Batas minimum korelasi (r):", 0.10, 0.50, 0.30, 0.05)
+    st.caption("Standar umum: r > 0.30. Beberapa peneliti menggunakan r > 0.25 untuk sampel kecil.")
 
+# ── Jalankan uji ───────────────────────────────────────────────────────────────
 if st.button("🔬 Jalankan Uji Validitas", type="primary"):
     with st.spinner("Menghitung..."):
-        validity_df = corrected_item_total_correlation(df_analysis, likert_cols)
-        validity_df["Status"] = validity_df["Korelasi Item-Total"].apply(
-            lambda r: "Valid ✅" if r > threshold else "Tidak Valid ❌"
-        )
+        validity_df = corrected_item_total_correlation(df_analysis, likert_cols, threshold)
         st.session_state["validity_df"]        = validity_df
         st.session_state["validity_threshold"] = threshold
 
-if "validity_df" in st.session_state:
-    validity_df = st.session_state["validity_df"]
-    valid_count, invalid_count = get_validity_summary(validity_df)
-    total = len(validity_df)
+if "validity_df" not in st.session_state:
+    st.stop()
 
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Total Item",      total)
-    c2.metric("✅ Valid",        valid_count)
-    c3.metric("❌ Tidak Valid",  invalid_count)
+validity_df = st.session_state["validity_df"]
+# Recalculate status jika threshold berubah
+validity_df["Status"] = validity_df["Korelasi Item-Total"].apply(
+    lambda r: "Valid ✅" if r > threshold else "Tidak Valid ❌"
+)
+validity_df[["Interpretasi", "Penjelasan"]] = validity_df.apply(
+    lambda row: pd.Series(get_combined_interpretation(
+        row["Korelasi Item-Total"], row["p-value"], threshold
+    )), axis=1
+)
 
-    interp = validity_interpretation(valid_count, total)
-    if valid_count == total:
-        st.success(interp)
-    elif valid_count >= total * 0.7:
-        st.warning(interp)
+valid_count, invalid_count = get_validity_summary(validity_df)
+total = len(validity_df)
+
+# ── Ringkasan kategori ─────────────────────────────────────────────────────────
+n_valid_sig   = ((validity_df["Korelasi Item-Total"] >  threshold) & (validity_df["p-value"] < 0.05)).sum()
+n_valid_nsig  = ((validity_df["Korelasi Item-Total"] >  threshold) & (validity_df["p-value"] >= 0.05)).sum()
+n_inv_sig     = ((validity_df["Korelasi Item-Total"] <= threshold) & (validity_df["p-value"] < 0.05)).sum()
+n_inv_nsig    = ((validity_df["Korelasi Item-Total"] <= threshold) & (validity_df["p-value"] >= 0.05)).sum()
+
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("✅ Valid & Signifikan",         n_valid_sig)
+c2.metric("⚠️ Valid tapi Belum Meyakinkan", n_valid_nsig)
+c3.metric("ℹ️ Kurang Relevan",             n_inv_sig)
+c4.metric("❌ Tidak Valid",                 n_inv_nsig)
+
+# Pesan ringkasan
+interp = validity_interpretation(valid_count, total)
+if valid_count == total:
+    st.success(interp)
+elif valid_count >= total * 0.7:
+    st.warning(interp)
+else:
+    st.error(interp)
+
+# ── Grafik ─────────────────────────────────────────────────────────────────────
+st.markdown("### 📊 Grafik Korelasi Item-Total")
+st.caption(
+    "Hijau = Valid (r > 0.30). Merah = Tidak Valid. "
+    "Garis putus-putus = batas validitas. "
+    "Arahkan kursor ke batang untuk melihat pertanyaan lengkap."
+)
+st.plotly_chart(plot_validity_barchart(validity_df), use_container_width=True)
+
+# Legenda kode
+short_map, legend_df = make_short_labels(likert_cols)
+if any(short_map[c] != c for c in likert_cols):
+    with st.expander("📖 Keterangan kode pertanyaan di grafik"):
+        st.dataframe(legend_df, use_container_width=True, hide_index=True)
+
+# ── Tabel lengkap ──────────────────────────────────────────────────────────────
+st.markdown("### 📋 Tabel Hasil Uji Validitas")
+st.caption("Kolom **Penjelasan** mendeskripsikan arti hasil untuk setiap pertanyaan.")
+
+# Tampilkan dengan kode pendek di kolom Item
+display_df = validity_df.copy()
+display_df.insert(0, "Kode", [short_map.get(c, c) for c in display_df["Item"]])
+display_df["Item"] = display_df["Item"].apply(
+    lambda x: x[:55] + "…" if len(x) > 55 else x
+)
+cols_show = ["Kode", "Item", "Korelasi Item-Total", "p-value", "Interpretasi", "Penjelasan"]
+display_df = display_df[cols_show]
+
+# Warna per baris berdasarkan kategori interpretasi
+def color_row(row):
+    interp = row["Interpretasi"]
+    if "Valid & Signifikan" in interp:
+        bg = "background-color:#d4edda;"
+    elif "Belum Meyakinkan" in interp:
+        bg = "background-color:#fff3cd;"
+    elif "Kurang Relevan" in interp:
+        bg = "background-color:#d1ecf1;"
     else:
-        st.error(interp)
+        bg = "background-color:#f8d7da;"
+    return [bg] * len(row)
 
-    st.markdown("### 📊 Grafik Korelasi Item-Total")
-    st.caption("Hijau = Valid (r > 0.30). Merah = Tidak Valid. Garis putus-putus = batas validitas.")
-    st.plotly_chart(plot_validity_barchart(validity_df), use_container_width=True)
+st.dataframe(
+    display_df.style.apply(color_row, axis=1),
+    use_container_width=True,
+    hide_index=True,
+    height=min(700, 65 + 35 * len(display_df)),
+)
 
-    st.markdown("### 📋 Tabel Hasil Uji Validitas")
-    def color_status(val):
-        if "Valid ✅" in str(val):   return "background-color:#d4edda;color:#155724;"
-        if "Tidak Valid" in str(val): return "background-color:#f8d7da;color:#721c24;"
-        return ""
-    st.dataframe(
-        validity_df.style.applymap(color_status, subset=["Status"]),
-        use_container_width=True, hide_index=True
-    )
+# ── Legenda warna ──────────────────────────────────────────────────────────────
+st.markdown(
+    """
+    <small>
+    🟩 Hijau = Valid & Signifikan &nbsp;|&nbsp;
+    🟨 Kuning = Valid tapi Belum Meyakinkan &nbsp;|&nbsp;
+    🟦 Biru = Kurang Relevan &nbsp;|&nbsp;
+    🟥 Merah = Tidak Valid
+    </small>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ── Rekomendasi ────────────────────────────────────────────────────────────────
+if invalid_count > 0 or n_inv_sig > 0:
+    st.markdown("### 💡 Rekomendasi")
 
     if invalid_count > 0:
-        invalid_items = validity_df[validity_df["Status"] == "Tidak Valid ❌"]["Item"].tolist()
+        gugur = validity_df[validity_df["Status"] == "Tidak Valid ❌"]["Item"].tolist()
+        gugur_kode = [short_map.get(x, x) for x in gugur]
         st.warning(
-            f"**Pertanyaan tidak valid:** {', '.join(invalid_items)}\n\n"
-            "Kemungkinan penyebab: pertanyaan ambigu, tidak relevan, atau salah klasifikasi positif/negatif."
+            f"**{invalid_count} pertanyaan perlu ditinjau ulang:** {', '.join(gugur_kode)}\n\n"
+            "Kemungkinan penyebab: pertanyaan ambigu, tidak relevan dengan topik utama, "
+            "atau salah pengelompokan antara pertanyaan positif dan negatif."
         )
 
-    st.download_button(
-        "⬇️ Unduh Hasil (CSV)",
-        validity_df.to_csv(index=False).encode("utf-8"),
-        "hasil_validitas.csv", "text/csv"
-    )
+    if n_inv_sig > 0:
+        kurang = validity_df[
+            (validity_df["Korelasi Item-Total"] <= threshold) &
+            (validity_df["p-value"] < 0.05)
+        ]["Item"].tolist()
+        kurang_kode = [short_map.get(x, x) for x in kurang]
+        st.info(
+            f"**{n_inv_sig} pertanyaan berkategori 'Kurang Relevan':** {', '.join(kurang_kode)}\n\n"
+            "Pertanyaan ini memiliki pola yang konsisten di semua responden, namun "
+            "korelasinya dengan topik utama masih terlalu lemah. "
+            "Pertimbangkan untuk memperjelas redaksi pertanyaannya."
+        )
+
+# ── Download ───────────────────────────────────────────────────────────────────
+st.markdown("---")
+st.download_button(
+    "⬇️ Unduh Hasil Uji Validitas (CSV)",
+    validity_df.to_csv(index=False).encode("utf-8"),
+    "hasil_validitas.csv",
+    "text/csv",
+)
