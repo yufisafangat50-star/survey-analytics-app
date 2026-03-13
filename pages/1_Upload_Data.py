@@ -120,12 +120,28 @@ if "df" in st.session_state and st.session_state["df"] is not None:
 
     # ── Info kolom ─────────────────────────────────────────────────────────────
     st.markdown("### 🔢 Informasi Kolom")
+    def fmt_dtype(dtype):
+        s = str(dtype)
+        if "datetime" in s: return "datetime ✅"
+        if "int"      in s: return "integer (angka bulat)"
+        if "float"    in s: return "float (angka desimal)"
+        if "object"   in s: return "teks"
+        if "bool"     in s: return "boolean"
+        return s
+
+    def fmt_minmax(col):
+        if pd.api.types.is_numeric_dtype(df[col]):
+            return df[col].min(), df[col].max()
+        if pd.api.types.is_datetime64_any_dtype(df[col]):
+            return str(df[col].min().date()), str(df[col].max().date())
+        return "-", "-"
+
     col_info = pd.DataFrame({
         "Kolom":       df.columns,
-        "Tipe Data":   df.dtypes.astype(str).values,
+        "Tipe Data":   [fmt_dtype(df[c].dtype) for c in df.columns],
         "Nilai Unik":  [df[c].nunique() for c in df.columns],
-        "Min":         [df[c].min() if pd.api.types.is_numeric_dtype(df[c]) else "-" for c in df.columns],
-        "Max":         [df[c].max() if pd.api.types.is_numeric_dtype(df[c]) else "-" for c in df.columns],
+        "Min":         [fmt_minmax(c)[0] for c in df.columns],
+        "Max":         [fmt_minmax(c)[1] for c in df.columns],
         "Missing":     [df[c].isnull().sum() for c in df.columns],
     })
     st.dataframe(col_info, use_container_width=True, hide_index=True)
