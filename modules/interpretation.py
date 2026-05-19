@@ -34,6 +34,8 @@ def kmo_interpretation(kmo):
         return "✅ Data cukup sesuai untuk Analisis Faktor."
     elif kmo >= 0.60:
         return "⚠️ Data kurang ideal untuk Analisis Faktor, namun masih dapat digunakan."
+    elif kmo >= 0.50:
+        return "⚠️ Data berada di batas minimum layak. Hasil Analisis Faktor dapat digunakan dengan catatan."
     else:
         return "❌ Data tidak sesuai untuk Analisis Faktor. Pertimbangkan untuk meninjau kembali kuesioner."
 

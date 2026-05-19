@@ -51,8 +51,8 @@ def interpret_kmo(kmo_value):
     if kmo_value >= 0.90: return "Sangat Baik (Marvelous)"
     elif kmo_value >= 0.80: return "Baik (Meritorious)"
     elif kmo_value >= 0.70: return "Cukup (Middling)"
-    elif kmo_value >= 0.60: return "Lemah (Mediocre)"
-    elif kmo_value >= 0.50: return "Buruk (Miserable)"
+    elif kmo_value >= 0.60: return "Agak Lemah (Mediocre)"
+    elif kmo_value >= 0.50: return "Layak (Miserable)"
     else: return "Tidak Dapat Diterima"
 
 
