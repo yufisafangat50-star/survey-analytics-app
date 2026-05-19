@@ -160,6 +160,78 @@ st.markdown("---")
 st.markdown("### 🏷️ Langkah 3: Beri Nama pada Setiap Faktor")
 st.caption("Lihat pengelompokan pertanyaan di bawah, lalu beri nama yang bermakna untuk setiap faktor.")
 
+# ── Auto-naming dengan Claude AI ─────────────────────────────────────────────
+def auto_name_factors_with_ai(loadings_df, n_factors, loading_threshold):
+    """Panggil Claude API untuk memberi nama faktor berdasarkan item-itemnya."""
+    import requests, json
+
+    # Susun daftar item per faktor
+    assignments = get_factor_assignments(loadings_df, loading_threshold)
+    factor_items = {}
+    for item, (factor, loading) in assignments.items():
+        if factor != "Tidak ada":
+            factor_items.setdefault(factor, []).append(item)
+
+    if not factor_items:
+        return {}
+
+    factor_list_text = ""
+    for fkey in sorted(factor_items.keys()):
+        items = factor_items[fkey]
+        factor_list_text += f"\n{fkey}:\n"
+        for it in items:
+            factor_list_text += f"  - {it}\n"
+
+    prompt = (
+        "Anda adalah ahli psikometri. Berikut adalah hasil pengelompokan pertanyaan survei "
+        "ke dalam faktor-faktor berdasarkan Analisis Faktor Eksploratori (EFA).\n\n"
+        f"{factor_list_text}\n"
+        "Berikan nama yang singkat, deskriptif, dan bermakna dalam Bahasa Indonesia "
+        "untuk setiap faktor berdasarkan tema pertanyaan yang masuk ke dalamnya.\n"
+        "Nama maksimal 4 kata. Jangan beri penjelasan panjang.\n"
+        "Balas HANYA dalam format JSON seperti ini (tanpa markdown, tanpa kode blok):\n"
+        '{"Faktor 1": "Nama Faktor 1", "Faktor 2": "Nama Faktor 2", ...}'
+    )
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={"Content-Type": "application/json"},
+            json={
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 300,
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=20
+        )
+        data = resp.json()
+        raw = data["content"][0]["text"].strip()
+        # Bersihkan jika ada markdown fence
+        raw = raw.replace("```json", "").replace("```", "").strip()
+        return json.loads(raw)
+    except Exception as e:
+        st.warning(f"Auto-naming gagal: {e}")
+        return {}
+
+# Tombol auto-generate nama
+col_auto, _ = st.columns([1, 3])
+with col_auto:
+    if st.button("✨ Auto-generate Nama Faktor", help="Gunakan AI untuk memberi nama faktor secara otomatis berdasarkan pertanyaan yang masuk ke setiap faktor"):
+        with st.spinner("AI sedang menganalisis pertanyaan..."):
+            ai_names = auto_name_factors_with_ai(loadings_df, n_factors_found, loading_threshold)
+            if ai_names:
+                for fkey, fname in ai_names.items():
+                    if fkey in factor_names:
+                        factor_names[fkey] = fname
+                st.session_state["factor_names"] = factor_names
+                st.success("✅ Nama faktor berhasil di-generate! Silakan edit jika perlu.")
+                st.rerun()
+
+# Input teks untuk edit nama (nilai dari session_state agar update setelah rerun)
+factor_names = st.session_state.get("factor_names", {
+    f"Faktor {i+1}": f"Faktor {i+1}" for i in range(n_factors_found)
+})
+
 name_cols = st.columns(min(4, n_factors_found))
 for i in range(n_factors_found):
     key = f"Faktor {i+1}"
@@ -256,7 +328,7 @@ def highlight_loading(val):
     return ""
 
 st.dataframe(
-    display_df.round(3).style.map(highlight_loading, subset=numeric_cols),
+    display_df.round(3).style.applymap(highlight_loading, subset=numeric_cols),
     use_container_width=True,
     height=min(600, 65 + 35 * len(display_df)),
     hide_index=True,
