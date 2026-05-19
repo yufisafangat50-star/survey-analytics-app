@@ -256,7 +256,7 @@ def highlight_loading(val):
     return ""
 
 st.dataframe(
-    display_df.round(3).style.applymap(highlight_loading, subset=numeric_cols),
+    display_df.round(3).style.map(highlight_loading, subset=numeric_cols),
     use_container_width=True,
     height=min(600, 65 + 35 * len(display_df)),
     hide_index=True,
